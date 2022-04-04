@@ -1,5 +1,6 @@
 import psycopg2
 
+# todo: move to secrets correct values
 DB = "devops_school"
 DB_USER = "oleg"
 DB_PASSWORD = "oleg"
