@@ -8,7 +8,7 @@ and store it into your DB
 (id, weather_state_name, wind_direction_compass, created, applicable_date, min_temp, max_temp, the_temp).
 Output the data by date (the date is set) in form of a table and sort them by created in ascending order.
 """
-import calendar
+
 import sys
 from calendar import monthrange
 import datetime
@@ -77,7 +77,7 @@ def backend(year, month, day):
     recreate_tables()
     gen_ids = get_ids(datetime.date(year, month, day))
     print(gen_ids)
-    urls = [f'{URL_API}/{year}/{month}/{cur_day + 1}' for cur_day in range(calendar.monthrange(year, month)[1])]
+    urls = [f'{URL_API}/{year}/{month}/{cur_day + 1}' for cur_day in range(monthrange(year, month)[1])]
     day_val = AsyncWeatherCall(urls, gen_ids).do_async()
     sql_cmd = ''
     print(day_val)
