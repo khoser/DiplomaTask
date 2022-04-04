@@ -1,14 +1,6 @@
 import psycopg2
 import yaml
 
-yaml_conf = 'secrets.yaml'
-CONFIG = yaml.safe_load(yaml_conf)
-DB = CONFIG['db']['name']
-DB_USER = CONFIG['db']['oleg']
-DB_PASSWORD = CONFIG['db']['password']
-DB_HOST = CONFIG['db']['server']
-DB_PORT = CONFIG['db']['port']
-
 
 class Database:
     """PostgreSQL Database class."""
@@ -21,23 +13,30 @@ class Database:
             # DB_PORT,
             # DB
     ):
-        self.host = DB_HOST
-        self.username = DB_USER
-        self.password = DB_PASSWORD
-        self.port = DB_PORT
-        self.dbname = DB
+        self.DB = None
+        self.DB_USER = None
+        self.DB_PASSWORD = None
+        self.DB_HOST = None
+        self.DB_PORT = None
         self.conn = None
 
     def connect(self):
         """Connect to a Postgres database."""
         if self.conn is None:
+            with open('secrets.yaml', 'r') as yaml_conf:
+                config = yaml.safe_load(yaml_conf)
+            self.DB = config['db']['name']
+            self.DB_USER = config['db']['oleg']
+            self.DB_PASSWORD = config['db']['password']
+            self.DB_HOST = config['db']['server']
+            self.DB_PORT = config['db']['port']
             try:
                 self.conn = psycopg2.connect(
-                    host=self.host,
-                    user=self.username,
-                    password=self.password,
-                    port=self.port,
-                    dbname=self.dbname
+                    host=self.DB_HOST,
+                    user=self.DB_USER,
+                    password=self.DB_PASSWORD,
+                    port=self.DB_PORT,
+                    dbname=self.DB
                 )
             except psycopg2.DatabaseError as e:
                 raise e
