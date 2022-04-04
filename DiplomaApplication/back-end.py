@@ -44,7 +44,7 @@ class AsyncWeatherCall(object):
         result = ',\n'.join('(' + ','.join(f"'{(item[index])}'" for index in attrs.keys()) + ')' for item in data
                             if item['id'] not in self.ids)
         if result:
-            self.stri.append(result)
+            self.stri.append(result.replace('None', 'Null'))
         await session.close()
 
     def do_async(self):
@@ -67,7 +67,8 @@ def get_ids(dt):
         '{dt.strftime('%Y-%m')}-01' and '{dt.strftime('%Y-%m')}-{monthrange(dt.year, dt.month)[1]}'
     """
     ids = db.select(sql_cmd)
-    return [i[0] for i in ids]
+    print(ids)
+    return [i[0] for i in ids if i is not None]
 
 
 def backend(year, month, day):

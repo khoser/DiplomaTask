@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from db import Database
 from datetime import date as dt
+import subprocess
 
 db = Database()
 app = FastAPI()
@@ -64,3 +65,11 @@ async def get_by_date(date):
     where applicable_date = '{date}'
     order by created asc;"""
     return prepare_table(db.select(sql_cmd), date)
+
+
+@app.get("/reload/{date}")
+async def call_backend(date):
+    call_date = dt.fromisoformat(date)
+    bash_cmd = f"python3 back-end.py {call_date.year} {call_date.month} {call_date.day}"
+    p = subprocess.Popen(bash_cmd, stdout=subprocess.PIPE, shell=True)
+    return p.communicate()

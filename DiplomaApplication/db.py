@@ -26,7 +26,7 @@ class Database:
             with open('secrets.yaml', 'r') as yaml_conf:
                 config = yaml.safe_load(yaml_conf)
             self.DB = config['db']['name']
-            self.DB_USER = config['db']['oleg']
+            self.DB_USER = config['db']['user']
             self.DB_PASSWORD = config['db']['password']
             self.DB_HOST = config['db']['server']
             self.DB_PORT = config['db']['port']
@@ -47,6 +47,7 @@ class Database:
         with self.conn.cursor() as cur:
             cur.execute(query)
             records = [row for row in cur.fetchall()]
+            self.conn.commit()
             cur.close()
             return records
 
