@@ -1,11 +1,13 @@
 import psycopg2
+import yaml
 
-# todo: move to secrets correct values
-DB = "devops_school"
-DB_USER = "oleg"
-DB_PASSWORD = "oleg"
-DB_HOST = "db"
-DB_PORT = "5432"
+yaml_conf = 'secrets.yaml'
+CONFIG = yaml.safe_load(yaml_conf)
+DB = CONFIG['db']['name']
+DB_USER = CONFIG['db']['oleg']
+DB_PASSWORD = CONFIG['db']['password']
+DB_HOST = CONFIG['db']['server']
+DB_PORT = CONFIG['db']['port']
 
 
 class Database:
