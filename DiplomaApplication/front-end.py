@@ -1,10 +1,10 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
-from db import Database
 from datetime import date as dt
-import subprocess
+import requests
 
-db = Database()
+URL_BACKEND = "http://localhost:8000"
+
 app = FastAPI()
 
 
@@ -35,41 +35,32 @@ def prepare_table(rec, date):
     return html
 
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/")
 async def main():
-    sql_cmd = f"""select
-        -- applicable_date,
-        created,
-        weather_state_name,
-        wind_direction_compass,
-        min_temp,
-        max_temp,
-        the_temp
-    from public.weather
-    where applicable_date = '{dt.today()}'
-    order by created asc;"""
-    return prepare_table(db.select(sql_cmd), dt.today())
+    # resp = requests.get(f"{URL_BACKEND}/date/{dt.today()}")
+    # return prepare_table(resp.json(), dt.today())
+    return {'use': '/date/...'}
 
 
-@app.get("/{date}", response_class=HTMLResponse)
+@app.get("/date", response_class=HTMLResponse)
+async def main():
+    resp = requests.get(f"{URL_BACKEND}/date/{dt.today()}")
+    return prepare_table(resp.json(), dt.today())
+
+
+@app.get("/date/{date}", response_class=HTMLResponse)
 async def get_by_date(date):
-    sql_cmd = f"""select
-       -- applicable_date,
-        created,
-        weather_state_name,
-        wind_direction_compass,
-        min_temp,
-        max_temp,
-        the_temp 
-    from public.weather
-    where applicable_date = '{date}'
-    order by created asc;"""
-    return prepare_table(db.select(sql_cmd), date)
+    resp = requests.get(f"{URL_BACKEND}/date/{date}")
+    return prepare_table(resp.json(), date)
 
 
-@app.get("/reload/{date}")
+@app.get("/reload/", response_class=HTMLResponse)
+async def call_backend():
+    resp = requests.get(f"{URL_BACKEND}/reload/{dt.today().isoformat()}")
+    return prepare_table(resp.json(), dt.today().isoformat())
+
+
+@app.get("/reload/{date}", response_class=HTMLResponse)
 async def call_backend(date):
-    call_date = dt.fromisoformat(date)
-    bash_cmd = f"python3 back-end.py {call_date.year} {call_date.month} {call_date.day}"
-    p = subprocess.Popen(bash_cmd, stdout=subprocess.PIPE, shell=True)
-    return p.communicate()
+    resp = requests.get(f"{URL_BACKEND}/reload/{date}")
+    return prepare_table(resp.json(), date)

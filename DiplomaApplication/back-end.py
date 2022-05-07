@@ -15,7 +15,8 @@ import datetime
 from db import Database
 import asyncio
 import aiohttp
-
+from fastapi import FastAPI
+from datetime import date as dt
 
 URL_API = 'https://www.metaweather.com/api/location/2122265'  # Moscow
 attrs = {
@@ -29,6 +30,7 @@ attrs = {
     'the_temp': 'float'
 }
 db = Database()
+app = FastAPI()
 
 
 class AsyncWeatherCall(object):
@@ -61,42 +63,62 @@ def recreate_tables():
     db.execute(sql_cmd)
 
 
-def get_ids(dt):
+def get_ids(date):
     sql_cmd = f"""select id from public.weather
     where applicable_date between
-        '{dt.strftime('%Y-%m')}-01' and '{dt.strftime('%Y-%m')}-{monthrange(dt.year, dt.month)[1]}'
+        '{date.strftime('%Y-%m')}-01' and '{date.strftime('%Y-%m')}-{monthrange(date.year, date.month)[1]}'
     """
     ids = db.select(sql_cmd)
-    print(ids)
     return [i[0] for i in ids if i is not None]
 
 
-def backend(year, month, day):
-    year = int(year)
-    month = int(month)
-    day = int(day)
+@app.get("/reload/{date}")
+def backend(date):
+    call_date = dt.fromisoformat(date)
+    year = int(call_date.year)
+    month = int(call_date.month)
+    day = int(call_date.day)
     recreate_tables()
     gen_ids = get_ids(datetime.date(year, month, day))
-    print(gen_ids)
     urls = [f'{URL_API}/{year}/{month}/{cur_day + 1}' for cur_day in range(monthrange(year, month)[1])]
     day_val = AsyncWeatherCall(urls, gen_ids).do_async()
     sql_cmd = ''
-    print(day_val)
     if day_val:
         sql_cmd += f'''
         insert into public.weather({','.join(f'"{index}"' for index in attrs.keys())}) values {day_val};
         '''
     if sql_cmd:
         db.execute(sql_cmd)
-    db.conn.close()
+    return front_data_by_date(date)
 
 
 def usage():
     print(f'usage: {sys.argv[0]} year month day')
 
 
-if __name__ == '__main__':
-    try:
-        backend(*sys.argv[1:4])
-    except TypeError as e:
-        usage()
+@app.get("/date/{date}")
+def front_data_by_date(date):
+    sql_cmd = f"""select
+            -- applicable_date,
+            created,
+            weather_state_name,
+            wind_direction_compass,
+            min_temp,
+            max_temp,
+            the_temp
+        from public.weather
+        where applicable_date = '{date}'
+        order by created asc;"""
+    return db.select(sql_cmd)
+
+
+@app.get("/")
+def hello():
+    return {'use': '/date/...'}
+
+
+# if __name__ == '__main__':
+#     try:
+#         backend(*sys.argv[1:4])
+#     except TypeError as e:
+#         usage()
