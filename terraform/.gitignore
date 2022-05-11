@@ -1,0 +1,11 @@
+# Terraform
+**/.terraform/*
+.terraform*
+# .tfstate files
+*.tfstate
+*.tfstate.*
+.envrc
+pk_*
+private_ips.txt 
+.DS_Store
+
