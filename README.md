@@ -8,3 +8,5 @@ For terraform we need to export:
 - PM_API_URL
 - PM_API_TOKEN_ID
 - PM_API_TOKEN_SECRET
+
+For application we need to define variables in /DiplomaApplication/secrets.yaml
